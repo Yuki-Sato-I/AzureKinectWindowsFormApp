@@ -72,38 +72,66 @@ namespace kinect_get_data
         public Form1()
         {
             InitializeComponent();
-            InitialDevice();
-            InitBitmap();
+            PrepareDevice.InitialDevice(ref running, ref device, ref transformation);
+            PrepareDevice.InitBitmap(in device, ref depthBitmap, ref colorBitmap);
             GetDataFromKinect();
         }
 
-        private void InitialDevice()
+        //加速度　Accelerometer m/s^2(メートル毎秒毎秒)
+        // FIXME 未完成　加速度の値がおかしい気がする
+        private void GetImu()
         {
-            running = true;
-            device = Device.Open(0);
-            device.StartCameras(new DeviceConfiguration()
+            ImuSample imu;
+            try
             {
-                CameraFPS = FPS.FPS30,
-                ColorFormat = ImageFormat.ColorBGRA32,
-                ColorResolution = ColorResolution.R720p,
-                DepthMode = DepthMode.NFOV_Unbinned,
-                WiredSyncMode = WiredSyncMode.Standalone,
-            });
-            transformation = device.GetCalibration().CreateTransformation();
-        }
+                imu = device.GetImuSample();
+                var x = imu.AccelerometerSample.X;
+                var y = imu.AccelerometerSample.Y;
+                var z = imu.AccelerometerSample.Z;
 
-        private void InitBitmap()
-        {
-            int width = device.GetCalibration().DepthCameraCalibration.ResolutionWidth;
-            int height = device.GetCalibration().DepthCameraCalibration.ResolutionHeight;
-            depthBitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-            colorBitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+                NumberOfHeightPixels.Text = x.ToString();
+                NumberOfWidthPixels.Text = y.ToString();
+                TotalPixels.Text = z.ToString();
+            }
+            catch (Exception ex)
+            {
+                Error.Text = ex.Message;
+            }
+
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             running = false;
             device.Dispose();
+        }
+
+        private void DisplayInformation(Frame frame)
+        {
+            
+            var heightPixels = frame.BodyIndexMap.HeightPixels;
+            var widthPixels = frame.BodyIndexMap.WidthPixels;
+            var totalPixels = heightPixels * widthPixels;
+            NumberOfHeightPixels.Text = heightPixels.ToString();
+            NumberOfWidthPixels.Text = widthPixels.ToString();
+            TotalPixels.Text = totalPixels.ToString();
+            
+
+            //GetImu();
+
+            var position = frame.GetBodySkeleton(0).GetJoint(JointId.SpineNavel).Position;
+            var quaternion = frame.GetBodySkeleton(0).GetJoint(JointId.SpineNavel).Quaternion;
+
+            NumberOfBodies.Text = frame.NumberOfBodies.ToString();
+
+            positionData.Text = "Position:\n　X: " + position.X + "\n　Y: " + (-1 * position.Y) + "\n　Z: " + position.Z;
+            quaternionData.Text = "Quaternion:\n　X: " + quaternion.X + "\n　Y: " + quaternion.Y + "\n　Z: " + quaternion.Z + "\n　W: " + quaternion.W;
+
+            GetData.ColorImage(frame.Capture, in transformation, in colorBitmap);
+            GetData.DepthImage(frame.Capture, in depthBitmap);
+
+            pictureBox1.Image = depthBitmap;
+            pictureBox2.Image = colorBitmap;
         }
         
         public async Task<int> GetDataFromKinect ()
@@ -126,31 +154,13 @@ namespace kinect_get_data
 
                                 if (frame != null)
                                 {
-                                    var heightPixels = frame.BodyIndexMap.HeightPixels;
-                                    var widthPixels = frame.BodyIndexMap.WidthPixels;
-                                    var totalPixels = heightPixels * widthPixels;
-                                    var position = frame.GetBodySkeleton(0).GetJoint(JointId.SpineNavel).Position;
-                                    var quaternion = frame.GetBodySkeleton(0).GetJoint(JointId.SpineNavel).Quaternion;
+                                    DisplayInformation(frame);
 
                                     if (measure)
                                     {
-                                        // caluculation center of gravity
+                                        // caluculate center of gravity and write data
                                         CalcCenterOfGravity(frame.GetBodySkeleton(0), ref data);
                                     }
-
-                                    // information displayed
-                                    NumberOfBodies.Text = frame.NumberOfBodies.ToString();
-                                    NumberOfHeightPixels.Text = heightPixels.ToString();
-                                    NumberOfWidthPixels.Text = widthPixels.ToString();
-                                    TotalPixels.Text = totalPixels.ToString();
-                                    positionData.Text = "Position:\n　X: "+position.X+"\n　Y: "+(-1*position.Y)+"\n　Z: "+position.Z;
-                                    quaternionData.Text = "Quaternion:\n　X: " + quaternion.X + "\n　Y: " + quaternion.Y + "\n　Z: " + quaternion.Z + "\n　W: " + quaternion.W;
-                                    GetDepthImage(frame.Capture);
-                                    GetColorImage(frame.Capture);
-
-                                    pictureBox1.Image = depthBitmap;
-                                    pictureBox2.Image = colorBitmap;
-
 
                                 }
                             }
@@ -271,96 +281,20 @@ namespace kinect_get_data
 
         }
 
-        private void GetColorImage(Capture capture)
-        {
-            Image colorImage = transformation.ColorImageToDepthCamera(capture);
-            BGRA[] colorArray = colorImage.GetPixels<BGRA>().ToArray();
-            BitmapData bitmapData = colorBitmap.LockBits(new Rectangle(0, 0, colorBitmap.Width, colorBitmap.Height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
-
-            unsafe
-            {
-                //各ピクセルの値へのポインタ
-                byte* pixels = (byte*)bitmapData.Scan0;
-                int index = 0;
-                //1ピクセルずつ処理
-                for (int i = 0; i < colorArray.Length; i++)
-                {
-                    pixels[index++] = colorArray[i].B;
-                    pixels[index++] = colorArray[i].G;
-                    pixels[index++] = colorArray[i].R;
-                    pixels[index++] = 255;//Alpha値を固定して不透過に
-                }
-            }
-            colorBitmap.UnlockBits(bitmapData);
-        }
-        private void GetDepthImage(Capture capture)
-        {
-            Image depthImage = capture.Depth;
-            ushort[] depthArray = depthImage.GetPixels<ushort>().ToArray();
-            BitmapData bitmapData = depthBitmap.LockBits(new Rectangle(0, 0, depthBitmap.Width, depthBitmap.Height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
-            unsafe//ポインタ使うため
-            {
-                //各ピクセルの値へのポインタ
-                byte* pixels = (byte*)bitmapData.Scan0;
-                int index;
-                int depth;
-                //一ピクセルずつ処理
-                for (int i = 0; i < depthArray.Length; i++)
-                {
-                    //500～5000mmを0～255に変換
-                    depth = (int)(255 * (depthArray[i] - 500) / 5000.0);
-                    if (depth < 0 || depth > 255) depth = 0;
-                    index = i * 4;
-                    pixels[index++] = (byte)depth;
-                    pixels[index++] = (byte)depth;
-                    pixels[index++] = (byte)depth;
-                    pixels[index++] = 255;
-                }
-            }
-            //書き込み終了
-            depthBitmap.UnlockBits(bitmapData);
-        }
-
+        // もう使ってないボタン
         private void Button1_Click(object sender, EventArgs e)
         {
-            WriteCSV();
         }
+
         private void MeasureBtn_Click(object sender, EventArgs e)
         {
             measure = !measure;
             measureBtn.Text = measure ? "計測停止" : "計測開始";
             if (!measure)
             {
-                WriteCSV();
+                csvLabel.Text = OutData.CSV(answerLabel.Text, data);
             }
         }
-
-        private void WriteCSV()
-        {
-            DateTime dateTime = DateTime.Now;
-            string fileName = dateTime.Year + "_" + dateTime.Month + "_" + dateTime.Day + "_" + dateTime.Hour + "_" + dateTime.Minute + "_" + dateTime.Second + ".csv";
-
-            if (answerLabel.Text != "")
-            {
-                fileName = "(" + answerLabel.Text + ")" + "_" + fileName;
-            }
-
-            try
-            {
-                StreamWriter file = new StreamWriter("/Users/yuki/Desktop/data/" + fileName, false, Encoding.UTF8);
-                foreach (string[] lineData in data)
-                {
-                    file.WriteLine(String.Join(",", lineData));
-                }
-                file.Close();
-                csvLabel.Text = "The file was written successfully.";
-            }
-            catch (Exception ex)
-            {
-                csvLabel.Text = ex.Message;
-            }
-        }
-
 
     }
 }
