@@ -57,6 +57,7 @@ namespace kinect_get_data
         }
 
         Device device;
+
         bool running = false;
         bool measure = false; //測定開始フラグ
         Bitmap depthBitmap;
@@ -64,9 +65,14 @@ namespace kinect_get_data
         Transformation transformation;
 
         //csv出力するためのデータ
+        //string[][] data = new string[][]
+        //{
+        //    new string[]{"center X", "test X", "center Y", "test Y", "center Z", "test Z" }
+        //};
+
         string[][] data = new string[][]
         {
-            new string[]{"center X", "test X", "center Y", "test Y", "center Z", "test Z" }
+            new string[]{"center X", "center Y", "center Z", "acc X", "acc Y", "acc Z", "COG time", "Acc time" }
         };
 
         public Form1()
@@ -81,23 +87,6 @@ namespace kinect_get_data
         // FIXME 未完成　加速度の値がおかしい気がする
         private void GetImu()
         {
-            ImuSample imu;
-            try
-            {
-                imu = device.GetImuSample();
-                var x = imu.AccelerometerSample.X;
-                var y = imu.AccelerometerSample.Y;
-                var z = imu.AccelerometerSample.Z;
-
-                NumberOfHeightPixels.Text = x.ToString();
-                NumberOfWidthPixels.Text = y.ToString();
-                TotalPixels.Text = z.ToString();
-            }
-            catch (Exception ex)
-            {
-                Error.Text = ex.Message;
-            }
-
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -106,16 +95,19 @@ namespace kinect_get_data
             device.Dispose();
         }
 
-        private void DisplayInformation(Frame frame)
+        private void DisplayInformation(Frame frame, ImuSample imu)
         {
             
             var heightPixels = frame.BodyIndexMap.HeightPixels;
             var widthPixels = frame.BodyIndexMap.WidthPixels;
             var totalPixels = heightPixels * widthPixels;
-            NumberOfHeightPixels.Text = heightPixels.ToString();
-            NumberOfWidthPixels.Text = widthPixels.ToString();
             TotalPixels.Text = totalPixels.ToString();
-            
+
+            string frameTimeStamp = frame.DeviceTimestamp.ToString();
+            string imuTimeStamp = imu.AccelerometerTimestamp.ToString();
+
+            IMUTimestamp.Text = imuTimeStamp;
+            FrameTimestamp.Text = frameTimeStamp;
 
             //GetImu();
 
@@ -142,24 +134,42 @@ namespace kinect_get_data
             {
                 while(running)
                 {
+                    ImuSample imu;
                     using (Capture sensorCapture = await Task.Run(() => { return device.GetCapture(); }).ConfigureAwait(true))
                     {
+                        imu = device.GetImuSample();
                         TimeSpan time = new TimeSpan(0, 0, 5, 0, 0);
                         try
                         {
-                            tracker.EnqueueCapture(sensorCapture, time);
+                           tracker.EnqueueCapture(sensorCapture, time);
 
                             using (Frame frame = await Task.Run(() => tracker.PopResult(TimeSpan.Zero, throwOnTimeout: false)))
                             {
+                                string frameTimeStamp = frame.DeviceTimestamp.ToString();
+                                string imuTimeStamp = imu.AccelerometerTimestamp.ToString();
 
                                 if (frame != null)
                                 {
-                                    DisplayInformation(frame);
-
+                                    DisplayInformation(frame, imu);
+                                    
                                     if (measure)
                                     {
                                         // caluculate center of gravity and write data
-                                        CalcCenterOfGravity(frame.GetBodySkeleton(0), ref data);
+                                        Array.Resize(ref data, data.Length + 1);
+
+                                        var COGdata = CalcCenterOfGravity(frame.GetBodySkeleton(0));
+                                        var sample = imu.AccelerometerSample;
+                                        data[data.Length - 1] = new string[] {
+                                            COGdata[0],
+                                            COGdata[1],
+                                            COGdata[2],
+                                            sample.X.ToString(),
+                                            sample.Y.ToString(),
+                                            sample.Z.ToString(),
+                                            frameTimeStamp,
+                                            imuTimeStamp
+                                        };
+
                                     }
 
                                 }
@@ -180,11 +190,10 @@ namespace kinect_get_data
         }
 
         // calculation center of gravity
-        private void CalcCenterOfGravity(Skeleton skeleton, ref string[][] data)
+        private string[] CalcCenterOfGravity(Skeleton skeleton)
         {
             // test
-            var testData = skeleton.GetJoint(JointId.SpineChest).Position;
-
+            // var testData = skeleton.GetJoint(JointId.SpineChest).Position;
 
             // getted from Azure Kinect device
             var footRight     = skeleton.GetJoint(JointId.FootRight).Position;
@@ -215,17 +224,17 @@ namespace kinect_get_data
             Vector3 legRight      = Vector3.Multiply(new Vector3(PositionRatioOfGravity.Leg), footRight) + Vector3.Multiply(new Vector3(PositionRatioOfGravity.Leg), ankleRight);
             Vector3 legLeft       = Vector3.Multiply(new Vector3(PositionRatioOfGravity.Leg), footLeft) + Vector3.Multiply(new Vector3(PositionRatioOfGravity.Leg), ankleLeft);
             // 下腿
-            Vector3 lowerLegRight = Vector3.Multiply(new Vector3(1-PositionRatioOfGravity.LowerLeg), kneeRight) + Vector3.Multiply(new Vector3(PositionRatioOfGravity.Leg), ankleRight);
-            Vector3 lowerLegLeft  = Vector3.Multiply(new Vector3(1-PositionRatioOfGravity.LowerLeg), kneeLeft) + Vector3.Multiply(new Vector3(PositionRatioOfGravity.Leg), ankleLeft);
+            Vector3 lowerLegRight = Vector3.Multiply(new Vector3(1 - PositionRatioOfGravity.LowerLeg), kneeRight) + Vector3.Multiply(new Vector3(PositionRatioOfGravity.Leg), ankleRight);
+            Vector3 lowerLegLeft  = Vector3.Multiply(new Vector3(1 - PositionRatioOfGravity.LowerLeg), kneeLeft) + Vector3.Multiply(new Vector3(PositionRatioOfGravity.Leg), ankleLeft);
             // 大腿
-            Vector3 thighRight    = Vector3.Multiply(new Vector3(1-PositionRatioOfGravity.Thigh), hipRight) + Vector3.Multiply(new Vector3(PositionRatioOfGravity.Thigh), kneeRight);
-            Vector3 thighLeft     = Vector3.Multiply(new Vector3(1-PositionRatioOfGravity.Thigh), hipLeft) + Vector3.Multiply(new Vector3(PositionRatioOfGravity.Thigh), kneeLeft);
+            Vector3 thighRight    = Vector3.Multiply(new Vector3(1 - PositionRatioOfGravity.Thigh), hipRight) + Vector3.Multiply(new Vector3(PositionRatioOfGravity.Thigh), kneeRight);
+            Vector3 thighLeft     = Vector3.Multiply(new Vector3(1 - PositionRatioOfGravity.Thigh), hipLeft) + Vector3.Multiply(new Vector3(PositionRatioOfGravity.Thigh), kneeLeft);
             // 手
             Vector3 handRight     = Vector3.Multiply(new Vector3(1 - PositionRatioOfGravity.Hand), wristRight) + Vector3.Multiply(new Vector3(PositionRatioOfGravity.Hand), handtipRight);
             Vector3 handLeft      = Vector3.Multiply(new Vector3(1 - PositionRatioOfGravity.Hand), wristLeft) + Vector3.Multiply(new Vector3(PositionRatioOfGravity.Hand), handtipLeft);
             // 前腕
-            Vector3 forearmRight  = Vector3.Multiply(new Vector3(1-PositionRatioOfGravity.Forearm), elbowRight) + Vector3.Multiply(new Vector3(PositionRatioOfGravity.Forearm), wristRight);
-            Vector3 forearmLeft   = Vector3.Multiply(new Vector3(1-PositionRatioOfGravity.Forearm), elbowLeft) + Vector3.Multiply(new Vector3(PositionRatioOfGravity.Forearm), wristLeft);
+            Vector3 forearmRight  = Vector3.Multiply(new Vector3(1 - PositionRatioOfGravity.Forearm), elbowRight) + Vector3.Multiply(new Vector3(PositionRatioOfGravity.Forearm), wristRight);
+            Vector3 forearmLeft   = Vector3.Multiply(new Vector3(1 - PositionRatioOfGravity.Forearm), elbowLeft) + Vector3.Multiply(new Vector3(PositionRatioOfGravity.Forearm), wristLeft);
             //上腕
             Vector3 upperRight    = Vector3.Multiply(new Vector3(1 - PositionRatioOfGravity.UpperArm), clavicleRight) + Vector3.Multiply(new Vector3(PositionRatioOfGravity.Forearm), elbowRight);
             Vector3 upperLeft     = Vector3.Multiply(new Vector3(1 - PositionRatioOfGravity.UpperArm), clavicleLeft) + Vector3.Multiply(new Vector3(PositionRatioOfGravity.Forearm), elbowLeft);
@@ -260,17 +269,15 @@ namespace kinect_get_data
             Vector3 arms             = Vector3.Multiply(armRight + armLeft, new Vector3(0.5f));
 
             //上半身
-            Vector3 upperBody        = Vector3.Multiply(bodyAndHead, PositionRatioOfWeight.Arm * 2 / (PositionRatioOfWeight.Arm*2 + PositionRatioOfWeight.Torso +PositionRatioOfWeight.Head)) + Vector3.Multiply(arms, PositionRatioOfWeight.Head + PositionRatioOfWeight.Torso / (PositionRatioOfWeight.Arm * 2 + PositionRatioOfWeight.Torso + PositionRatioOfWeight.Head));
+            Vector3 upperBody        = Vector3.Multiply(bodyAndHead, PositionRatioOfWeight.Arm*2 / (PositionRatioOfWeight.Arm*2 + PositionRatioOfWeight.Torso +PositionRatioOfWeight.Head)) + Vector3.Multiply(arms, PositionRatioOfWeight.Head + PositionRatioOfWeight.Torso / (PositionRatioOfWeight.Arm*2 + PositionRatioOfWeight.Torso + PositionRatioOfWeight.Head));
 
             //重心
             Vector3 CenterOfGravity = Vector3.Multiply(upperBody, PositionRatioOfWeight.LowerBody / (PositionRatioOfWeight.LowerBody + PositionRatioOfWeight.UpperBody)) + Vector3.Multiply(lowerBody, PositionRatioOfWeight.UpperBody / (PositionRatioOfWeight.LowerBody + PositionRatioOfWeight.UpperBody));
 
-
-            Array.Resize(ref data, data.Length + 1);
-            data[data.Length - 1] = new string[] {
-                CenterOfGravity.X.ToString(), testData.X.ToString(),
-                CenterOfGravity.Y.ToString(), testData.Y.ToString(),
-                CenterOfGravity.Z.ToString(), testData.Z.ToString()
+            return new string[] {
+                CenterOfGravity.X.ToString(),
+                CenterOfGravity.Y.ToString(),
+                CenterOfGravity.Z.ToString()
             };
 
         }
@@ -279,11 +286,6 @@ namespace kinect_get_data
         private void Form1_Load(object sender, EventArgs e)
         {
 
-        }
-
-        // もう使ってないボタン
-        private void Button1_Click(object sender, EventArgs e)
-        {
         }
 
         private void MeasureBtn_Click(object sender, EventArgs e)

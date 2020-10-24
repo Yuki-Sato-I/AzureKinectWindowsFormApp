@@ -45,7 +45,7 @@ namespace kinect_get_data
             Image depthImage = capture.Depth;
             ushort[] depthArray = depthImage.GetPixels<ushort>().ToArray();
             BitmapData bitmapData = depthBitmap.LockBits(new Rectangle(0, 0, depthBitmap.Width, depthBitmap.Height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
-            unsafe//ポインタ使うため
+            unsafe
             {
                 //各ピクセルの値へのポインタ
                 byte* pixels = (byte*)bitmapData.Scan0;

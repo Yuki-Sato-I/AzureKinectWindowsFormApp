@@ -33,15 +33,14 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.NumberOfBodiesLabel = new System.Windows.Forms.Label();
-            this.NumberOfHeightPixelsLabel = new System.Windows.Forms.Label();
-            this.NumberOfWidthPixelsLabel = new System.Windows.Forms.Label();
+            this.IMUTimeStampLabel = new System.Windows.Forms.Label();
+            this.FrameTimestampLabel = new System.Windows.Forms.Label();
             this.TotalPixelsLabel = new System.Windows.Forms.Label();
             this.Error = new System.Windows.Forms.Label();
             this.NumberOfBodies = new System.Windows.Forms.Label();
-            this.NumberOfHeightPixels = new System.Windows.Forms.Label();
-            this.NumberOfWidthPixels = new System.Windows.Forms.Label();
+            this.IMUTimestamp = new System.Windows.Forms.Label();
+            this.FrameTimestamp = new System.Windows.Forms.Label();
             this.TotalPixels = new System.Windows.Forms.Label();
-            this.csvButton = new System.Windows.Forms.Button();
             this.csvLabel = new System.Windows.Forms.Label();
             this.positionData = new System.Windows.Forms.Label();
             this.quaternionData = new System.Windows.Forms.Label();
@@ -89,34 +88,36 @@
             // NumberOfBodiesLabel
             // 
             this.NumberOfBodiesLabel.AutoSize = true;
-            this.NumberOfBodiesLabel.Location = new System.Drawing.Point(7, 436);
+            this.NumberOfBodiesLabel.Location = new System.Drawing.Point(6, 426);
             this.NumberOfBodiesLabel.Name = "NumberOfBodiesLabel";
             this.NumberOfBodiesLabel.Size = new System.Drawing.Size(97, 12);
             this.NumberOfBodiesLabel.TabIndex = 11;
             this.NumberOfBodiesLabel.Text = "Number of Bodies";
             // 
-            // NumberOfHeightPixelsLabel
+            // IMUTimeStampLabel
             // 
-            this.NumberOfHeightPixelsLabel.AutoSize = true;
-            this.NumberOfHeightPixelsLabel.Location = new System.Drawing.Point(123, 436);
-            this.NumberOfHeightPixelsLabel.Name = "NumberOfHeightPixelsLabel";
-            this.NumberOfHeightPixelsLabel.Size = new System.Drawing.Size(130, 12);
-            this.NumberOfHeightPixelsLabel.TabIndex = 13;
-            this.NumberOfHeightPixelsLabel.Text = "Number of Height Pixels";
+            this.IMUTimeStampLabel.AutoSize = true;
+            this.IMUTimeStampLabel.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.IMUTimeStampLabel.Location = new System.Drawing.Point(123, 426);
+            this.IMUTimeStampLabel.Name = "IMUTimeStampLabel";
+            this.IMUTimeStampLabel.Size = new System.Drawing.Size(112, 16);
+            this.IMUTimeStampLabel.TabIndex = 13;
+            this.IMUTimeStampLabel.Text = "IMU Timestamp";
             // 
-            // NumberOfWidthPixelsLabel
+            // FrameTimestampLabel
             // 
-            this.NumberOfWidthPixelsLabel.AutoSize = true;
-            this.NumberOfWidthPixelsLabel.Location = new System.Drawing.Point(269, 436);
-            this.NumberOfWidthPixelsLabel.Name = "NumberOfWidthPixelsLabel";
-            this.NumberOfWidthPixelsLabel.Size = new System.Drawing.Size(127, 12);
-            this.NumberOfWidthPixelsLabel.TabIndex = 14;
-            this.NumberOfWidthPixelsLabel.Text = "Number Of Width Pixels";
+            this.FrameTimestampLabel.AutoSize = true;
+            this.FrameTimestampLabel.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.FrameTimestampLabel.Location = new System.Drawing.Point(123, 487);
+            this.FrameTimestampLabel.Name = "FrameTimestampLabel";
+            this.FrameTimestampLabel.Size = new System.Drawing.Size(129, 16);
+            this.FrameTimestampLabel.TabIndex = 14;
+            this.FrameTimestampLabel.Text = "Frame Timestamp";
             // 
             // TotalPixelsLabel
             // 
             this.TotalPixelsLabel.AutoSize = true;
-            this.TotalPixelsLabel.Location = new System.Drawing.Point(413, 436);
+            this.TotalPixelsLabel.Location = new System.Drawing.Point(12, 483);
             this.TotalPixelsLabel.Name = "TotalPixelsLabel";
             this.TotalPixelsLabel.Size = new System.Drawing.Size(66, 12);
             this.TotalPixelsLabel.TabIndex = 15;
@@ -127,64 +128,53 @@
             this.Error.AutoSize = true;
             this.Error.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.Error.ForeColor = System.Drawing.Color.Red;
-            this.Error.Location = new System.Drawing.Point(7, 510);
+            this.Error.Location = new System.Drawing.Point(493, 510);
             this.Error.Name = "Error";
-            this.Error.Size = new System.Drawing.Size(61, 19);
+            this.Error.Size = new System.Drawing.Size(104, 19);
             this.Error.TabIndex = 16;
-            this.Error.Text = "label8";
+            this.Error.Text = "Error Text";
             // 
             // NumberOfBodies
             // 
             this.NumberOfBodies.AutoSize = true;
             this.NumberOfBodies.Font = new System.Drawing.Font("MS UI Gothic", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.NumberOfBodies.Location = new System.Drawing.Point(38, 462);
+            this.NumberOfBodies.Location = new System.Drawing.Point(42, 446);
             this.NumberOfBodies.Name = "NumberOfBodies";
             this.NumberOfBodies.Size = new System.Drawing.Size(28, 29);
             this.NumberOfBodies.TabIndex = 17;
             this.NumberOfBodies.Text = "0";
             // 
-            // NumberOfHeightPixels
+            // IMUTimestamp
             // 
-            this.NumberOfHeightPixels.AutoSize = true;
-            this.NumberOfHeightPixels.Font = new System.Drawing.Font("MS UI Gothic", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.NumberOfHeightPixels.Location = new System.Drawing.Point(167, 462);
-            this.NumberOfHeightPixels.Name = "NumberOfHeightPixels";
-            this.NumberOfHeightPixels.Size = new System.Drawing.Size(28, 29);
-            this.NumberOfHeightPixels.TabIndex = 18;
-            this.NumberOfHeightPixels.Text = "0";
+            this.IMUTimestamp.AutoSize = true;
+            this.IMUTimestamp.Font = new System.Drawing.Font("MS UI Gothic", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.IMUTimestamp.Location = new System.Drawing.Point(128, 446);
+            this.IMUTimestamp.Name = "IMUTimestamp";
+            this.IMUTimestamp.Size = new System.Drawing.Size(115, 29);
+            this.IMUTimestamp.TabIndex = 18;
+            this.IMUTimestamp.Text = "00:00:00";
             // 
-            // NumberOfWidthPixels
+            // FrameTimestamp
             // 
-            this.NumberOfWidthPixels.AutoSize = true;
-            this.NumberOfWidthPixels.Font = new System.Drawing.Font("MS UI Gothic", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.NumberOfWidthPixels.Location = new System.Drawing.Point(308, 462);
-            this.NumberOfWidthPixels.Name = "NumberOfWidthPixels";
-            this.NumberOfWidthPixels.Size = new System.Drawing.Size(28, 29);
-            this.NumberOfWidthPixels.TabIndex = 19;
-            this.NumberOfWidthPixels.Text = "0";
+            this.FrameTimestamp.AutoSize = true;
+            this.FrameTimestamp.Font = new System.Drawing.Font("MS UI Gothic", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.FrameTimestamp.Location = new System.Drawing.Point(128, 506);
+            this.FrameTimestamp.Name = "FrameTimestamp";
+            this.FrameTimestamp.Size = new System.Drawing.Size(115, 29);
+            this.FrameTimestamp.TabIndex = 19;
+            this.FrameTimestamp.Text = "00:00:00";
             // 
             // TotalPixels
             // 
             this.TotalPixels.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.TotalPixels.AutoSize = true;
             this.TotalPixels.Font = new System.Drawing.Font("MS UI Gothic", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.TotalPixels.Location = new System.Drawing.Point(410, 462);
+            this.TotalPixels.Location = new System.Drawing.Point(12, 506);
             this.TotalPixels.Name = "TotalPixels";
             this.TotalPixels.Size = new System.Drawing.Size(28, 29);
             this.TotalPixels.TabIndex = 20;
             this.TotalPixels.Text = "0";
             this.TotalPixels.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // csvButton
-            // 
-            this.csvButton.Enabled = false;
-            this.csvButton.Location = new System.Drawing.Point(790, 472);
-            this.csvButton.Name = "csvButton";
-            this.csvButton.Size = new System.Drawing.Size(67, 23);
-            this.csvButton.TabIndex = 21;
-            this.csvButton.Text = "CSV出力";
-            this.csvButton.UseVisualStyleBackColor = true;
-            this.csvButton.Click += new System.EventHandler(this.Button1_Click);
             // 
             // csvLabel
             // 
@@ -251,15 +241,14 @@
             this.Controls.Add(this.quaternionData);
             this.Controls.Add(this.positionData);
             this.Controls.Add(this.csvLabel);
-            this.Controls.Add(this.csvButton);
             this.Controls.Add(this.TotalPixels);
-            this.Controls.Add(this.NumberOfWidthPixels);
-            this.Controls.Add(this.NumberOfHeightPixels);
+            this.Controls.Add(this.FrameTimestamp);
+            this.Controls.Add(this.IMUTimestamp);
             this.Controls.Add(this.NumberOfBodies);
             this.Controls.Add(this.Error);
             this.Controls.Add(this.TotalPixelsLabel);
-            this.Controls.Add(this.NumberOfWidthPixelsLabel);
-            this.Controls.Add(this.NumberOfHeightPixelsLabel);
+            this.Controls.Add(this.FrameTimestampLabel);
+            this.Controls.Add(this.IMUTimeStampLabel);
             this.Controls.Add(this.NumberOfBodiesLabel);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
@@ -283,14 +272,13 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label NumberOfBodiesLabel;
         private System.Windows.Forms.Label NumberOfBodies;
-        private System.Windows.Forms.Label NumberOfHeightPixelsLabel;
-        private System.Windows.Forms.Label NumberOfWidthPixelsLabel;
+        private System.Windows.Forms.Label IMUTimeStampLabel;
+        private System.Windows.Forms.Label FrameTimestampLabel;
         private System.Windows.Forms.Label TotalPixelsLabel;
         private System.Windows.Forms.Label Error;
-        private System.Windows.Forms.Label NumberOfHeightPixels;
-        private System.Windows.Forms.Label NumberOfWidthPixels;
+        private System.Windows.Forms.Label IMUTimestamp;
+        private System.Windows.Forms.Label FrameTimestamp;
         private System.Windows.Forms.Label TotalPixels;
-        private System.Windows.Forms.Button csvButton;
         private System.Windows.Forms.Label csvLabel;
         private System.Windows.Forms.Label positionData;
         private System.Windows.Forms.Label quaternionData;

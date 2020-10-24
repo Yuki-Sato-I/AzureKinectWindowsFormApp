@@ -48,10 +48,5 @@ namespace kinect_get_data
             return outText;
         }
 
-        public static void DisplayInformation(ref string a)
-        {
-            a = "aaaa";
-        }
-
     }
 }
